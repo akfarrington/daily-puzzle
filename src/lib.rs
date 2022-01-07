@@ -1,5 +1,6 @@
 #![allow(clippy::wildcard_imports)]
 use seed::{prelude::*, *};
+use js_sys::Date;
 
 mod puzzle;
 
@@ -17,6 +18,7 @@ fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
         solve_button_text: "Solve!".to_string(),
         date_month: None,
         date_day: None,
+        solve_time: None,
     }
 }
 
@@ -31,6 +33,7 @@ struct Model {
     solve_button_text: String,
     date_month: Option<i32>,
     date_day: Option<i32>,
+    solve_time: Option<u32>,
 }
 
 // ------ ------
@@ -54,6 +57,9 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             if month_string.is_empty() {
                 return;
             }
+
+            // this is to reset the solve time if running many times
+            model.solve_time = None;
 
             let month = month_string.parse::<i32>().unwrap();
             model.date_month = Some(month);
@@ -82,6 +88,7 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             if day_string.is_empty() {
                 return;
             }
+            model.solve_time = None;
             let day = day_string.parse::<i32>().unwrap();
             model.date_day = Some(day);
 
@@ -104,10 +111,14 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             }
         }
         Msg::Solve => {
-            model.solve_button_text = "Solving!".to_string();
-            model.solve_button_enabled = false;
+            // get time before start
+            let start_time = Date::new_0().get_utc_seconds();
+
             model.board.solve();
-            model.solve_button_text = "Solve!".to_string();
+
+            let end_time = Date::new_0().get_utc_seconds();
+
+            model.solve_time = Some(end_time - start_time);
         }
     }
 }
@@ -154,6 +165,7 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
             IF!(!model.solve_button_enabled => attrs!(At::Disabled => true)),
             C!["date-input"]
         ],
+        solve_time(model.solve_time),
         br!()
     ]
 }
@@ -164,6 +176,14 @@ fn small_box(content: String, color: &str) -> Node<Msg> {
 
 fn empty_box() -> Node<Msg> {
     td!(style!(St::Background => BLOCKED_SQUARE), C!["cell"])
+}
+
+fn solve_time(time: Option<u32>) -> Node<Msg> {
+    if let Some(solved_time) = time {
+        div!(format!("solved in {} seconds", solved_time))
+    } else {
+        div!()
+    }
 }
 
 fn cells(model: &Model) -> Node<Msg> {
