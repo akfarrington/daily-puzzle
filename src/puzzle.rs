@@ -313,20 +313,6 @@ impl AllPieces {
         ])
     }
 
-    pub fn get_piece_by_id(&self, id: PieceId) -> Result<&PieceVariation, &'static str> {
-        if id.piece_number as usize + 1 > self.0.len() {
-            return Err("not a valid piece number");
-        }
-
-        let piece = &self.0[id.piece_number as usize];
-
-        if id.variation_number + 1 > piece.variations.len() {
-            return Err("not a valid variation number");
-        }
-
-        Ok(&piece.variations[id.variation_number as usize])
-    }
-
     pub fn get_next_piece_id_or_variation_by_id(&self, id: &PieceId) -> Option<PieceId> {
         let this_piece_id = id.piece_number;
         let this_variation_id = id.variation_number;
@@ -380,16 +366,6 @@ impl std::fmt::Display for PieceVariation {
 }
 
 impl PieceVariation {
-    pub fn get_index_from_coordinates(&self, coordinates: Coordinates) -> Option<usize> {
-        let index = (coordinates.y * self.x_len) + coordinates.x;
-
-        if index > self.x_len * self.y_len {
-            None
-        } else {
-            Some(index)
-        }
-    }
-
     pub fn get_coordinates_from_index(&self, index: usize) -> Option<Coordinates> {
         if index > self.x_len * self.y_len {
             None
@@ -495,7 +471,7 @@ impl Board {
         };
 
         for forbidden_index in forbidden_indexes {
-            new_board.debug_board[forbidden_index.clone()] = BoardSquare::Forbidden;
+            new_board.debug_board[forbidden_index] = BoardSquare::Forbidden;
             new_board.with_color[forbidden_index] = BLOCKED_SQUARE;
         }
 
@@ -550,7 +526,7 @@ impl Board {
                         return None;
                     }
                     // add to the at_coordinate part to find the part on the board this will go
-                    let affected_coordinate = at_coordinate.clone() + coordinates;
+                    let affected_coordinate = *at_coordinate + coordinates;
 
                     // add this to the list. Unwrap is okay because it'll already be checked for out of bounds.
                     if let Some(index) = Board::get_index_from_coordinates(affected_coordinate) {
@@ -595,13 +571,10 @@ impl Board {
         let mut make_empty_list = vec![];
 
         for (index, square) in self.debug_board.iter().enumerate() {
-            match square {
-                BoardSquare::Filled(square_piece_id) => {
-                    if square_piece_id == piece_id {
-                        make_empty_list.push(index);
-                    }
+            if let BoardSquare::Filled(square_piece_id) = square {
+                if square_piece_id == piece_id {
+                    make_empty_list.push(index);
                 }
-                _ => {}
             }
         }
 
@@ -657,8 +630,8 @@ impl Board {
                                 self.all_pieces.0[at_piece_id.piece_number as usize].available =
                                     false;
                                 self.history.push(HistoryItem {
-                                    piece_id: at_piece_id.clone(),
-                                    location: at_index.clone(),
+                                    piece_id: at_piece_id,
+                                    location: at_index,
                                 });
                                 // set the new piece then go to the next spot
                                 current_cmd = SolvingDirections::NextSquare;
@@ -751,10 +724,6 @@ impl Board {
                         panic!();
                     }
                 }
-            }
-
-            if self.counter >= i64::MAX {
-                break;
             }
         }
     }

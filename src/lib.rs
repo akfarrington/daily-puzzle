@@ -51,7 +51,7 @@ enum Msg {
 fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
         Msg::SetMonth(month_string) => {
-            if month_string.len() == 0 {
+            if month_string.is_empty() {
                 return;
             }
 
@@ -72,7 +72,7 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             }
         }
         Msg::SetDay(day_string) => {
-            if day_string.len() == 0 {
+            if day_string.is_empty() {
                 return;
             }
             let day = day_string.parse::<i32>().unwrap();
@@ -132,7 +132,7 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
             C!["date-input"]
         ]
         button![
-            format!("{}", model.solve_button_text),
+            model.solve_button_text.to_string(),
             ev(Ev::Click, move |_| Msg::Solve),
             // attrs!(
             //     IF!(!model.solve_button_enabled => At::Disabled => true)
@@ -142,11 +142,6 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
         ],
         br!()
     ]
-}
-
-enum BoxType {
-    Empty,
-    Filled(String),
 }
 
 fn small_box(content: String, color: &str) -> Node<Msg> {
