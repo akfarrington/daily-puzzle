@@ -1,5 +1,6 @@
 const EMPTY_SQUARE: &str = "rgb(255, 255, 255)";
 pub const BLOCKED_SQUARE: &str = "rgb(135, 143,153";
+const DATE_SQUARE: &str = "rgb(227, 229, 232)";
 const PIECE_0_COLOR: &str = "rgb(79, 174, 234)";
 const PIECE_1_COLOR: &str = "rgb(79, 174, 91)";
 const PIECE_2_COLOR: &str = "rgb(254, 255, 84)";
@@ -441,25 +442,29 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(month: i32, day: i32) -> Result<Board, &'static str> {
+    pub fn new(month: Option<i32>, day: Option<i32>) -> Result<Board, &'static str> {
         let mut forbidden_indexes: Vec<usize> = vec![6, 13, 45, 46, 47, 48];
 
-        if (1..=12).contains(&month) {
-            // the board has two blocked out boxes at the end, so jan-june are -1 but the next 6
-            // don't need to have anything subtracted
-            if month <= 6 {
-                forbidden_indexes.push(month as usize - 1);
+        if let Some(set_month) = month {
+            if (1..=12).contains(&set_month) {
+                // the board has two blocked out boxes at the end, so jan-june are -1 but the next 6
+                // don't need to have anything subtracted
+                if set_month <= 6 {
+                    forbidden_indexes.push(set_month as usize - 1);
+                } else {
+                    forbidden_indexes.push(set_month as usize)
+                }
             } else {
-                forbidden_indexes.push(month as usize)
+                return Err("bad date");
             }
-        } else {
-            return Err("bad date");
         }
 
-        if (1..=31).contains(&day) {
-            forbidden_indexes.push(day as usize + 13);
-        } else {
-            return Err("bad date");
+        if let Some(set_day) = day {
+            if (1..=31).contains(&set_day) {
+                forbidden_indexes.push(set_day as usize + 13);
+            } else {
+                return Err("bad date");
+            }
         }
 
         let mut new_board = Board {
@@ -472,7 +477,7 @@ impl Board {
 
         for forbidden_index in forbidden_indexes {
             new_board.debug_board[forbidden_index] = BoardSquare::Forbidden;
-            new_board.with_color[forbidden_index] = BLOCKED_SQUARE;
+            new_board.with_color[forbidden_index] = DATE_SQUARE;
         }
 
         Ok(new_board)

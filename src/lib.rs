@@ -12,11 +12,11 @@ use puzzle::*;
 // `init` describes what should happen when your app started.
 fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
     Model {
-        board: Board::new(1, 1).unwrap(),
+        board: Board::new(None, None).unwrap(),
         solve_button_enabled: false,
         solve_button_text: "Solve!".to_string(),
-        date_month: 0,
-        date_day: 0,
+        date_month: None,
+        date_day: None,
     }
 }
 
@@ -29,8 +29,8 @@ struct Model {
     board: Board,
     solve_button_enabled: bool,
     solve_button_text: String,
-    date_month: i32,
-    date_day: i32,
+    date_month: Option<i32>,
+    date_day: Option<i32>,
 }
 
 // ------ ------
@@ -56,12 +56,19 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             }
 
             let month = month_string.parse::<i32>().unwrap();
-            model.date_month = month;
+            model.date_month = Some(month);
+
+            if model.date_month.is_none() || model.date_day.is_none() {
+                // cannot create new board because one of the 2 values is set to None
+                return;
+            }
 
             // check if date is valid
-            if date_ok(&month, &model.date_day) {
+            if date_ok(&model.date_month.unwrap(), &model.date_day.unwrap()) {
                 // if it's valid update the model and create a new board
-                if let Ok(new_board) = Board::new(model.date_month, model.date_day) {
+                if let Ok(new_board) =
+                    Board::new(Some(model.date_month.unwrap()), Some(model.date_day.unwrap()))
+                {
                     model.board = new_board;
                     model.solve_button_enabled = true;
                     model.solve_button_text = "Solve!".to_string();
@@ -76,10 +83,17 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
                 return;
             }
             let day = day_string.parse::<i32>().unwrap();
-            model.date_day = day;
+            model.date_day = Some(day);
 
-            if date_ok(&model.date_month, &day) {
-                if let Ok(new_board) = Board::new(model.date_month, model.date_day) {
+            if model.date_month.is_none() || model.date_day.is_none() {
+                // cannot create new board because one of the 2 values is set to None
+                return;
+            }
+
+            if date_ok(&model.date_month.unwrap(), &model.date_day.unwrap()) {
+                if let Ok(new_board) =
+                    Board::new(Some(model.date_month.unwrap()), Some(model.date_day.unwrap()))
+                {
                     model.board = new_board;
                     model.solve_button_enabled = true;
                     model.solve_button_text = "Solve!".to_string();
