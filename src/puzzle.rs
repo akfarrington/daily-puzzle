@@ -1,4 +1,5 @@
 const EMPTY_SQUARE: &str = "rgb(255, 255, 255)";
+pub const BLOCKED_SQUARE: &str = "rgb(135, 143,153";
 const PIECE_0_COLOR: &str = "rgb(79, 174, 234)";
 const PIECE_1_COLOR: &str = "rgb(79, 174, 91)";
 const PIECE_2_COLOR: &str = "rgb(254, 255, 84)";
@@ -494,7 +495,8 @@ impl Board {
         };
 
         for forbidden_index in forbidden_indexes {
-            new_board.debug_board[forbidden_index] = BoardSquare::Forbidden;
+            new_board.debug_board[forbidden_index.clone()] = BoardSquare::Forbidden;
+            new_board.with_color[forbidden_index] = BLOCKED_SQUARE;
         }
 
         Ok(new_board)

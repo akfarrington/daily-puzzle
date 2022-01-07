@@ -154,7 +154,7 @@ fn small_box(content: String, color: &str) -> Node<Msg> {
 }
 
 fn empty_box() -> Node<Msg> {
-    td!(style!(St::Background => "#878f99"), C!["cell"])
+    td!(style!(St::Background => BLOCKED_SQUARE), C!["cell"])
 }
 
 fn cells(model: &Model) -> Node<Msg> {
