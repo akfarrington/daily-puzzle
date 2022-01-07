@@ -33,7 +33,7 @@ struct Model {
     solve_button_text: String,
     date_month: Option<i32>,
     date_day: Option<i32>,
-    solve_time: Option<u32>,
+    solve_time: Option<f64>,
 }
 
 // ------ ------
@@ -112,13 +112,14 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
         }
         Msg::Solve => {
             // get time before start
-            let start_time = Date::new_0().get_utc_seconds();
+            let start_time: f64 = Date::new_0().get_time();
 
             model.board.solve();
 
-            let end_time = Date::new_0().get_utc_seconds();
+            let end_time: f64 = Date::new_0().get_time();
 
-            model.solve_time = Some(end_time - start_time);
+            // milliseconds to seconds
+            model.solve_time = Some((end_time - start_time)/1000.0);
         }
     }
 }
@@ -178,7 +179,7 @@ fn empty_box() -> Node<Msg> {
     td!(style!(St::Background => BLOCKED_SQUARE), C!["cell"])
 }
 
-fn solve_time(time: Option<u32>) -> Node<Msg> {
+fn solve_time(time: Option<f64>) -> Node<Msg> {
     if let Some(solved_time) = time {
         div!(format!("solved in {} seconds", solved_time))
     } else {
